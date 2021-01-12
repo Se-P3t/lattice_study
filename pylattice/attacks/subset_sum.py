@@ -11,7 +11,7 @@ References:
     Solving low-density multiple subset sum problems with SVP oracle
     http://www.sysmath.com/jweb_xtkxyfzx/CN/article/downloadArticleFile.do?attachType=PDF&id=12706
 """
-__all__ = ["SSP"]
+__all__ = ["FPLLL", "SSP"]
 
 import os
 import math
@@ -22,6 +22,7 @@ from fpylll import FPLLL
 from ..util import matrix_overview, str_mat
 from pylattice.algorithms.lll import run_LLL
 from pylattice.algorithms.bkz import run_BKZ, run_BKZ2, run_DBKZ
+from pylattice.algorithms.sieve_asvp import solve_asvp
 from pylattice.algorithms.sieve_svp import solve_svp
 
 
@@ -210,11 +211,11 @@ class SSP:
             # N^2 > sum(key)
             N = math.ceil((1+self._epsilon) * math.sqrt(n))
 
-            B = [[0]*n for _ in range(n + 1)]
+            B = [[0]*(n+1) for _ in range(n + 1)]
             B[0][n] = N * self.sums[0]
             for i in range(n):
                 B[i+1][i] = 1
-                B[i+1][n] = N * self.sumss[0][i]
+                B[i+1][n] = N * self.numss[0][i]
 
         elif method == 1:
             """
@@ -266,6 +267,13 @@ class SSP:
 
         if self.verbose >= 2:
             matrix_overview(self.B)
+
+    @property
+    def basis(self):
+        """
+        overview of basis matrix
+        """
+        matrix_overview(self.B)
 
     def extract_solution(self):
         """
@@ -416,12 +424,21 @@ class SSP:
         if self.verbose >= 2:
             matrix_overview(self.B)
 
-    def sieve(self):
+    def _sieve(self, method='svp', **kwds):
         """
+        !!! TODO !!!
         """
-        pass
+        kwds['verbose'] = kwds.get('verbose', self.verbose >= 3)
 
+        if method == 'svp':
+            if self.verbose >= 1:
+                print("may need lots of time to find norm")
+            self.B = solve_svp(self.B, **kwds)
 
+        elif method == 'asvp':
+            if self.verbose >= 1:
+                print("need to guess the goal_r0/gh")
+            self.B = solve_asvp(self.B, **kwds)
 
-def test_SSP():
-    pass
+        else:
+            raise ValueError(f"unknown method {method}")
