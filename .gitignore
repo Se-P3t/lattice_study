@@ -119,6 +119,7 @@ reference/
 
 # unfinished
 _*
+!__init__.py
 
 # vscode
 .vscode/

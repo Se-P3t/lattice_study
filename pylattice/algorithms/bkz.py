@@ -28,7 +28,7 @@ def run_BKZ(A, block_size=2, **kwds):
     :returns: reduced matrix ``B``, represent in `list`
     """
     int_type = kwds.get('int_type', 'mpz')
-    float_type = kwds.get('float_type', 'mpfr')
+    float_type = kwds.get('float_type', None)
     precision = kwds.get('precision', 0)
     kwds['delta'] = kwds.get('delta', 0.99)
     kwds["strategies"] = kwds.get('strategies', BKZ.DEFAULT_STRATEGY)
@@ -63,12 +63,8 @@ def run_BKZ2(A, block_size=2, verbose=False):
 def run_DBKZ(A, block_size=2, verbose=False):
     """
     """
-    flags = BKZ.DEFAULT | BKZ.AUTO_ABORT
-    if verbose:
-        flags |= BKZ.VERBOSE
-
     A = IntegerMatrix.from_matrix(A)
-    _ = DBKZ(A)(BKZ.EasyParam(block_size=block_size, flags=flags))
+    _ = DBKZ(A)(block_size=block_size) # minimal implementation
     B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
 
     return B

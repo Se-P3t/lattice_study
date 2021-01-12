@@ -298,4 +298,5 @@ def solve_svp(A, goal_r0 = None, threads=4, **kwds):
     else:
         os.system(f'rm -f {load_matrix}')
 
-    return tuple(res[0])
+    res = [[res[i,j] for j in range(res.ncols)] for i in range(res.nrows)]
+    return res
