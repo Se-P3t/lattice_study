@@ -17,7 +17,7 @@ import os
 import math
 import random
 
-from fpylll import FPLLL
+from pylattice import FPLLL
 
 from ..util import matrix_overview, str_mat
 from pylattice.algorithms.lll import run_LLL
@@ -160,7 +160,7 @@ class SSP:
         assert zeros or ones
 
         new_numss = [
-            [n for idx, num in enumerate(nums) if idx not in zeros and idx not in ones]
+            [num for idx, num in enumerate(nums) if idx not in zeros and idx not in ones]
             for nums in self.numss
         ]
         new_sums = [
@@ -363,7 +363,7 @@ class SSP:
                 return None
 
         else:
-            raise RuntimeError(f"unknown method id {method}")
+            raise RuntimeError(f"unknown method id {self.method}")
 
     def check_sol(self, sol):
         """
