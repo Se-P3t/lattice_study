@@ -268,8 +268,7 @@ class SSP:
         if self.verbose >= 2:
             matrix_overview(self.B)
 
-    @property
-    def basis(self):
+    def basis_overview(self):
         """
         overview of basis matrix
         """
