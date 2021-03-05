@@ -11,6 +11,7 @@ import sys
 import copy
 from collections import OrderedDict
 
+from fpylll import IntegerMatrix
 from fpylll.util import gaussian_heuristic
 
 from g6k.algorithms.workout import workout
@@ -129,6 +130,13 @@ def solve_asvp(A, **kwds):
     params['workout/dim4free_dec'] = workout__dim4free_dec
     params['goal_r0__gh'] = goal_r0__gh
 
+    if isinstance(A, list):
+        return_list = True
+    elif isinstance(A, IntegerMatrix):
+        return_list = False
+    else:
+        raise TypeError("Matrix `A` type '%s' unknown." % type(A))
+
     with open(load_matrix, 'w') as f:
         f.write(str_mat(A))
 
@@ -140,5 +148,9 @@ def solve_asvp(A, **kwds):
     else:
         os.system(f'rm -f {load_matrix}')
 
-    res = [[res[i,j] for j in range(res.ncols)] for i in range(res.nrows)]
-    return res
+    B = [[res[i,j] for j in range(res.ncols)] for i in range(res.nrows)]
+    if return_list:
+        return B
+    else:
+        A = IntegerMatrix.from_matrix(B)
+        return A

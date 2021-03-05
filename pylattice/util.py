@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 """
+from fpylll import IntegerMatrix
 
 def matrix_overview(BB):
     for ii in range(len(BB)):
@@ -21,9 +22,12 @@ def matrix_overview(BB):
 
 
 def str_mat(m):
-    s = ''
-    for v in m:
-        s += str(v).replace(',', '')
-        s += '\n'
-    return s
-
+    if isinstance(m, IntegerMatrix):
+        return str(m)
+    elif isinstance(m, list):
+        s = ''
+        for v in m:
+            s += str(v).replace(',', '')
+            s += '\n'
+        return s
+    raise TypeError(f"unknown type ({type(m)}) of input")

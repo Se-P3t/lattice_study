@@ -23,6 +23,7 @@ def solve_svp(A, **kwds):
     elif not isinstance(A, IntegerMatrix):
         raise TypeError("Matrix `A` type '%s' unknown." % type(A))
 
+    verbose = kwds.get('verbose', False)
     kwds['flags'] = SVP.VERBOSE if verbose else SVP.DEFAULT
 
     v = SVP.shortest_vector(A, **kwds)

@@ -34,8 +34,18 @@ def run_LLL(A, delta=0.99, eta=0.501, **kwds):
     if kwds.pop('early_red', False):
         kwds['flags'] |= LLL.EARLY_RED
 
-    A = IntegerMatrix.from_matrix(A, int_type=int_type)
-    LLL.reduction(A, **kwds)
-    B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
+    return_list = True
+    if isinstance(A, list):
+        A = IntegerMatrix.from_matrix(A, int_type=int_type)
+    elif isinstance(A, IntegerMatrix):
+        return_list = False
+    else:
+        raise TypeError("Matrix `A` type '%s' unknown." % type(A))
 
-    return B
+    LLL.reduction(A, **kwds)
+
+    if return_list:
+        B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
+        return B
+    else:
+        return A

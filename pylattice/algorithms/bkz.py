@@ -38,12 +38,22 @@ def run_BKZ(A, block_size=2, **kwds):
     if kwds.get("auto_abort", False):
         kwds["flags"] |= BKZ.AUTO_ABORT
 
-    A = IntegerMatrix.from_matrix(A, int_type=int_type)
+    return_list = True
+    if isinstance(A, list):
+        A = IntegerMatrix.from_matrix(A, int_type=int_type)
+    elif isinstance(A, IntegerMatrix):
+        return_list = False
+    else:
+        raise TypeError("Matrix `A` type '%s' unknown." % type(A))
+
     BKZ.reduction(A, BKZ.Param(block_size=block_size, **kwds),
         float_type=float_type, precision=precision)
-    B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
 
-    return B
+    if return_list:
+        B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
+        return B
+    else:
+        return A
 
 
 def run_BKZ2(A, block_size=2, verbose=False):
@@ -53,18 +63,38 @@ def run_BKZ2(A, block_size=2, verbose=False):
     if verbose:
         flags |= BKZ.VERBOSE
 
-    A = IntegerMatrix.from_matrix(A)
-    _ = BKZ2(A)(BKZ.EasyParam(block_size=block_size, flags=flags))
-    B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
+    return_list = True
+    if isinstance(A, list):
+        A = IntegerMatrix.from_matrix(A)
+    elif isinstance(A, IntegerMatrix):
+        return_list = False
+    else:
+        raise TypeError("Matrix `A` type '%s' unknown." % type(A))
 
-    return B
+    _ = BKZ2(A)(BKZ.EasyParam(block_size=block_size, flags=flags))
+
+    if return_list:
+        B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
+        return B
+    else:
+        return A
 
 
 def run_DBKZ(A, block_size=2, verbose=False):
     """
     """
-    A = IntegerMatrix.from_matrix(A)
-    _ = DBKZ(A)(block_size=block_size) # minimal implementation
-    B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
+    return_list = True
+    if isinstance(A, list):
+        A = IntegerMatrix.from_matrix(A)
+    elif isinstance(A, IntegerMatrix):
+        return_list = False
+    else:
+        raise TypeError("Matrix `A` type '%s' unknown." % type(A))
 
-    return B
+    _ = DBKZ(A)(block_size=block_size) # minimal implementation
+
+    if return_list:
+        B = [[A[i,j] for j in range(A.ncols)] for i in range(A.nrows)]
+        return B
+    else:
+        return A
