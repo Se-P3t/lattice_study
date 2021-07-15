@@ -12,7 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Se-P3t/pylattice",
-    packages=["pylattice", "pylattice.algorithms", "pylattice.attacks"],
+    packages=["pylattice", "pylattice.attacks"],
     scripts=[],
     license='LICENSE',
     classifiers=[
