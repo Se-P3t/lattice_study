@@ -6,7 +6,7 @@ from fpylll import IntegerMatrix
 def matrix_overview(BB):
     for ii in range(BB.nrows):
         a = ('%03d ' % ii)
-        for jj in range(BB.nclos):
+        for jj in range(BB.ncols):
             if BB[ii, jj] == 0:
                 a += ' '
             elif abs(BB[ii, jj]) == 1:
