@@ -17,13 +17,8 @@ import os
 import math
 import random
 
-from pylattice import FPLLL
-
+from pylattice import FPLLL, Lattice
 from ..util import matrix_overview, str_mat
-from pylattice.algorithms.lll import run_LLL
-from pylattice.algorithms.bkz import run_BKZ, run_BKZ2, run_DBKZ
-from pylattice.algorithms.sieve_asvp import solve_asvp
-from pylattice.algorithms.sieve_svp import solve_svp
 
 
 SEED = int.from_bytes(os.urandom(8), 'big')
@@ -61,6 +56,7 @@ class SSP:
         self.method = None
         self.B = None
 
+
     @property
     def n(self):
         """
@@ -69,6 +65,7 @@ class SSP:
         assert self.numss and self.sums
         return len(self.numss[0])
 
+
     @property
     def k(self):
         """
@@ -76,6 +73,7 @@ class SSP:
         """
         assert self.numss and self.sums
         return len(self.sums)
+
 
     @property
     def d(self):
@@ -86,6 +84,7 @@ class SSP:
         bound = float(sum(map(lambda nums: max(nums).bit_length(), self.numss)))
         return float(self.n) / bound
 
+
     def __repr__(self):
         r = 'SSP(None)'
         if self.numss and self.sums:
@@ -93,6 +92,7 @@ class SSP:
         if self.key:
             r += ' (known key)'
         return r
+
 
     @staticmethod
     def gen(n, d, k=1, e = None, key = None):
@@ -139,12 +139,14 @@ class SSP:
 
             return (numss, sums), tuple(key)
 
+
     @classmethod
     def new_random(cls, n, d, k=1, e = None, key = None):
         """
         """
         (numss, sums), key = cls.gen(n=n, d=d, k=k, e=e, key=key)
         return cls(numss=numss, sums=sums, key=key)
+
 
     def remove_partial_key(self, zeros=tuple(), ones=tuple()):
         """
@@ -176,6 +178,7 @@ class SSP:
         if self.verbose >= 1:
             print('partial key: ' + self.partial_key)
 
+
     @property
     def partial_key(self):
         """
@@ -189,6 +192,7 @@ class SSP:
             else:
                 key_s += '.'
         return key_s
+
 
     def construct_matrix(self, method=1):
         """
@@ -211,11 +215,11 @@ class SSP:
             # N^2 > sum(key)
             N = math.ceil((1+self._epsilon) * math.sqrt(n))
 
-            B = [[0]*(n+1) for _ in range(n + 1)]
-            B[0][n] = N * self.sums[0]
+            B = Lattice(n+1, n+1)
+            B[0, n] = N * self.sums[0]
             for i in range(n):
-                B[i+1][i] = 1
-                B[i+1][n] = N * self.numss[0][i]
+                B[i+1, i] = 1
+                B[i+1, n] = N * self.numss[0][i]
 
         elif method == 1:
             """
@@ -231,14 +235,14 @@ class SSP:
                 # ?
                 N = math.ceil((1+self._epsilon) * math.sqrt((n+1)/4.))
 
-            B = [[0]*(n+k) for _ in range(n + 1)]
+            B = Lattice(n+1, n+k)
             for j in range(k):
-                B[0][n+j] = 2 * N * self.sums[j]
+                B[0, n+j] = 2 * N * self.sums[j]
             for i in range(n):
-                B[0][i] = 1
-                B[i+1][i] = 2
+                B[0, i] = 1
+                B[i+1, i] = 2
                 for j in range(k):
-                    B[i+1][n+j] = 2 * N * self.numss[j][i]
+                    B[i+1, n+j] = 2 * N * self.numss[j][i]
 
         elif method == 2:
             """
@@ -250,14 +254,14 @@ class SSP:
             # N big enough
             N = math.ceil((1+self._epsilon) * n**2)
 
-            B = [[-1]*(n+1+k) for _ in range(n + 1)]
-            B[0][n] = n + 1
+            B = Lattice(n+1, n+1+k)
+            B[0, n] = n + 1
             for j in range(k):
-                B[0][n+1+j] = -N * self.sums[j]
+                B[0, n+1+j] = -N * self.sums[j]
             for i in range(n):
-                B[i+1][i] = n + 1
+                B[i+1, i] = n + 1
                 for j in range(k):
-                    B[i+1][n+1+j] = N * self.numss[j][i]
+                    B[i+1, n+1+j] = N * self.numss[j][i]
 
         else:
             raise RuntimeError(f"unknown method id {method}")
@@ -268,11 +272,13 @@ class SSP:
         if self.verbose >= 2:
             matrix_overview(self.B)
 
+
     def basis_overview(self):
         """
         overview of basis matrix
         """
         matrix_overview(self.B)
+
 
     def extract_solution(self):
         """
@@ -281,12 +287,11 @@ class SSP:
         n = self.n
 
         if self.method == 0:
-            """
-            (e_1, ..., e_n, 0)
-            """
+            # (e_1, ..., e_n, 0)
             for i, b in enumerate(self.B):
                 if self.verbose >= 1:
                     print(f"\rchecking... {i+1}/{n+1}", end='')
+                b = tuple(b)
 
                 if any(x != 0 for x in b[n:]):
                     continue
@@ -308,12 +313,11 @@ class SSP:
                 return None
 
         elif self.method == 1:
-            """
-            (2e_1-1, ..., 2e_n-1, 0, ...
-            """
+            # (2e_1-1, ..., 2e_n-1, 0, ...
             for i, b in enumerate(self.B):
                 if self.verbose >= 1:
                     print(f"\rchecking... {i+1}/{n+1}", end='')
+                b = tuple(b)
 
                 if any(x != 0 for x in b[n:]):
                     continue
@@ -337,12 +341,14 @@ class SSP:
                     print("\nnot found")
                 return None
 
+
         elif self.method == 2:
             """
             """
             for i, b in enumerate(self.B):
                 if self.verbose >= 1:
                     print(f"\rchecking... {i+1}/{n+1}", end='')
+                b = tuple(b)
 
                 if any(x != 0 for x in b[n+1:]):
                     continue
@@ -364,35 +370,20 @@ class SSP:
         else:
             raise RuntimeError(f"unknown method id {self.method}")
 
+
     def check_sol(self, sol):
         """
         """
         return all(sum(num_i*sol_i for num_i, sol_i in zip(nums, sol)) == s
                    for nums, s in zip(self.numss, self.sums))
 
-    def shuffle(self, start=0, end = None):
-        """
-        :param start: (default: 0)
-        :param end: (default: `n-1`)
-        """
-        B = self.B
-        if end is None:
-            end = self.n - 1
-
-        self.B = (B[:start]
-                  +random.shuffle(B[start:end])
-                  +B[end+1:])
-
-        if self.verbose >= 2:
-            matrix_overview(self.B)
 
     def LLL(self):
         """
         """
         assert self.B
 
-        self.B = run_LLL(
-            self.B,
+        self.B.run_lll(
             delta=self._delta,
             eta=self._eta,
             verbose=(self.verbose >= 3),
@@ -401,43 +392,34 @@ class SSP:
         if self.verbose >= 2:
             matrix_overview(self.B)
 
+
     def BKZ(self, block_size=2, method='BKZ'):
         """
-        :param block_size: (default: 2)
-        :param method: (default: 'BKZ') one of 'BKZ', 'BKZ2' or 'DBKZ'
         """
         assert self.B
         if method == 'BKZ2':
-            bkz_func = run_BKZ2
-        elif method == 'DBKZ':
-            bkz_func = run_DBKZ
+            self.B.run_bkz2(
+                block_size=block_size,
+                verbose=(self.verbose >= 3),
+            )
         else:
-            bkz_func = run_BKZ
-
-        self.B = bkz_func(
-            self.B,
-            block_size=block_size,
-            verbose=(self.verbose >= 3),
-        )
+            self.B.run_bkz(
+                block_size=block_size,
+                verbose=(self.verbose >= 3),
+            )
 
         if self.verbose >= 2:
             matrix_overview(self.B)
 
-    def _sieve(self, method='svp', **kwds):
+
+    def sieve(self, goal_r0__gh, threads=1, seed=None, **kwds):
         """
-        !!! TODO !!!
         """
-        kwds['verbose'] = kwds.get('verbose', self.verbose >= 3)
+        kwds['verbose'] = kwds.get('verbose', self.verbose >= 2)
 
-        if method == 'svp':
-            if self.verbose >= 1:
-                print("may need lots of time to find norm")
-            self.B = solve_svp(self.B, **kwds)
-
-        elif method == 'asvp':
-            if self.verbose >= 1:
-                print("need to guess the goal_r0/gh")
-            self.B = solve_asvp(self.B, **kwds)
-
-        else:
-            raise ValueError(f"unknown method {method}")
+        self.B.solve_asvp(
+            threads=threads,
+            seed=seed,
+            goal_r0__gh=goal_r0__gh,
+            **kwds
+        )
