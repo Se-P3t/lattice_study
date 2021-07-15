@@ -4,14 +4,14 @@
 from fpylll import IntegerMatrix
 
 def matrix_overview(BB):
-    for ii in range(len(BB)):
+    for ii in range(BB.nrows):
         a = ('%03d ' % ii)
-        for jj in range(len(BB[0])):
-            if BB[ii][jj] == 0:
+        for jj in range(BB.nclos):
+            if BB[ii, jj] == 0:
                 a += ' '
-            elif abs(BB[ii][jj]) == 1:
+            elif abs(BB[ii, jj]) == 1:
                 a += '1'
-            elif abs(BB[ii][jj]) < 1:
+            elif abs(BB[ii, jj]) < 1:
                 a += '.'
             else:
                 a += 'X'
